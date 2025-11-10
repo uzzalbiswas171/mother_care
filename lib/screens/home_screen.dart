@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/profile_provider.dart';
-import '../screens/week_detail_screen.dart';
+import '../providers/week_provider.dart';
+import 'week_detail_screen.dart';
+import 'onboarding_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -9,42 +11,57 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profileProv = Provider.of<ProfileProvider>(context);
+    final weekProv = Provider.of<WeekProvider>(context);
+
+    final currentWeek = profileProv.getCurrentWeek();
+    final week = weekProv.getWeek(currentWeek);
 
     return Scaffold(
       appBar: AppBar(title: const Text('মা ও আমি')),
-      body: profileProv.profile == null
-          ? const Center(child: Text('প্রথমে আপনার তথ্য দিন'))
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'স্বাগতম ${profileProv.profile!.name}',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text('আপনার বর্তমান সপ্তাহ: ${profileProv.getCurrentWeek()}'),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => WeekDetailScreen(
-                            weekNumber: profileProv.getCurrentWeek(),
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text('এই সপ্তাহের তথ্য দেখুন'),
-                  ),
-                ],
-              ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              profileProv.profile != null
+                  ? 'স্বাগতম ${profileProv.profile!.name}'
+                  : 'স্বাগতম মা ও আমি',
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 10),
+            Text('বর্তমান সপ্তাহ: $currentWeek'),
+            const SizedBox(height: 20),
+            if (week != null)
+              Card(
+                child: ListTile(
+                  title: Text(week.title),
+                  subtitle: Text(week.description),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            WeekDetailScreen(weekNumber: currentWeek),
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.edit),
+        tooltip: 'আপনার তথ্য সম্পাদনা করুন',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+          );
+        },
+      ),
     );
   }
 }
